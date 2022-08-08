@@ -46,7 +46,14 @@ export default function ChoroplethContainer() {
   return (
     <>
       <main className="container-md">
-        {dataLoaded ? <Choropleth /> : 'Loading plot data...'}
+        {dataLoaded ? (
+          <Choropleth
+            educationData={educationData}
+            countyTopoData={countyTopoData}
+          />
+        ) : (
+          'Loading plot data...'
+        )}
       </main>
     </>
   );

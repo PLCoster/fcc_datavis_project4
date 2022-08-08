@@ -4,10 +4,10 @@ import choroplethBuilder from './helpers/choroplethBuilder';
 
 const choroContainerId = 'choropleth-container';
 
-export default function Choropleth() {
+export default function Choropleth({ educationData, countyTopoData }) {
   // On mount, run d3 script to build graph:
   useEffect(() => {
-    choroplethBuilder();
+    choroplethBuilder(educationData, countyTopoData, `#${choroContainerId}`);
   }, []);
   return (
     <>
