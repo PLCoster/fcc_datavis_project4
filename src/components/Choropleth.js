@@ -1,50 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
-import './Choropleth.css';
+import choroplethBuilder from './helpers/choroplethBuilder';
 
-import edDataBackup from './assets/educationData.json';
-import countyDataBackup from './assets/countyTopoData.json';
-
-const dataURLS = [
-  'https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json',
-  'https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json',
-];
+const choroContainerId = 'choropleth-container';
 
 export default function Choropleth() {
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [educationData, setEducationData] = useState(null);
-  const [countyTopoData, setCountiesTopoData] = useState(null);
-
-  // Load data on mounting:
+  // On mount, run d3 script to build graph:
   useEffect(() => {
-    // Get education and counties data from given URLs
-    Promise.all(dataURLS.map((url) => fetch(url)))
-      .then((responseArr) => {
-        console.log(responseArr);
-        if (responseArr[0].status === 201 && responseArr[1].status === 200) {
-          return Promise.all(responseArr.map((response) => response.json()));
-        } else {
-          throw new Error('Response status not 200');
-        }
-      })
-      .then(([edData, countData]) => {
-        setEducationData(edData);
-        setCountiesTopoData(countData);
-        setDataLoaded(true);
-      })
-      .catch((err) => {
-        // If an error occurs on fetch, resort to backup copies
-        console.log('Error when fetching plot data: ', err);
-        setEducationData(edDataBackup);
-        setCountiesTopoData(countyDataBackup);
-        setDataLoaded(true);
-      });
+    choroplethBuilder();
   }, []);
-
   return (
     <>
-      <h1>This is the choropleth!!!</h1>
-      {dataLoaded ? JSON.stringify(educationData) : 'Loading plot data...'}
+      <h1>This is the choropleth</h1>
+      <div id={choroContainerId} />
     </>
   );
 }
