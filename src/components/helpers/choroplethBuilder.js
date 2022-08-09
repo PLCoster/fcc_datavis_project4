@@ -1,17 +1,25 @@
 /**
  * Some useful links for choropleths in D3:
  *
- * Basic Choropleth:
+ * Basic Choropleths:
+ * https://d3-graph-gallery.com/graph/backgroundmap_basic.html
  * https://d3-graph-gallery.com/graph/choropleth_basic.html
  *
- * D3 MAP Projections:
+ * D3 GEO Projections:
  * https://d3-wiki.readthedocs.io/zh_CN/master/Geo-Projections/
+ * https://github.com/d3/d3-geo-projection#projections
  *
  * US Counties Map from Topological Dataset:
  * https://observablehq.com/@d3/choropleth
  *
- * US State Map in D3:
+ * D3 US Map Choropleth Examples:
  * http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922
+ * https://observablehq.com/@d3/u-s-map
+ * http://bl.ocks.org/dougdowson/9832019
+ * https://observablehq.com/@mkfreeman/topojson-simplifier
+ * https://observablehq.com/@d3/bivariate-choropleth
+ * https://observablehq.com/search?query=choropleth&onlyOwner=false
+ *
  */
 
 import * as d3 from 'd3';
@@ -58,16 +66,16 @@ export default function choroplethBuilder(
 
   plotDiv.html('');
 
-  const width = 1000;
+  const width = 2000;
   const height = 0.6 * width;
   const padding = { left: 80, bottom: 140, top: 0, right: 40 };
 
   const graphSVG = plotDiv
     .append('svg')
-    .attr('class', 'graph')
+    .attr('class', 'choropleth-svg')
     .attr('width', width)
-    .attr('height', height)
-    .attr('viewbox', '0 0 100 100');
+    .attr('height', height);
+  // .attr('viewBox', [0, 0, width, height]);
 
   graphSVG
     .append('rect')
@@ -75,23 +83,28 @@ export default function choroplethBuilder(
     .attr('width', width)
     .attr('height', height);
 
-  // const projection = d3.geoProjection(d3.)
-
+  // Apply projection sized to fit inside SVG area
   const path = d3.geoPath();
 
   console.log(
-    topojson.feature(countyTopoData, countyTopoData.objects.counties)
-      .features[0],
+    topojson.feature(countyTopoData, countyTopoData.objects.counties),
   );
 
   console.log(educationData[0]);
 
-  // Draw the map:
+  // Draw the map on a g element:
+  // g element standard size with map is 999 x 583px
   graphSVG
+    .append('g')
+    .attr('class', 'map')
     .selectAll('path')
     .data(mergedData)
     .enter()
     .append('path')
     .attr('class', 'county')
+    .attr('data-fips', (data) => data.fips)
+    .attr('data-education', (data) => data.bachelorsOrHigher)
     .attr('d', path);
+
+  // graphSVG.select('.map').attr('transform', ['scale(0.5)']);
 }
