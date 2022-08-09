@@ -25,6 +25,23 @@
 import * as d3 from 'd3';
 import * as topojson from 'topojson';
 
+// Background color of app to be used in chart color scheme:
+const BACKGROUND_COLOR = '#282c34';
+
+// Array of colors for the chart color scale:
+const COLOR_ARR = [
+  '#f7fbff',
+  '#e3eef9',
+  '#cfe1f2',
+  '#b5d4e9',
+  '#93c3df',
+  '#6daed5',
+  '#4b97c9',
+  '#2f7ebc',
+  '#1864aa',
+  '#0a4a90',
+];
+
 // The county data to plot the choropleth with is in topojson format
 // See here (https://github.com/topojson/topojson)
 // For plotting in d3 we need to convert this to GeoJSON format
@@ -69,16 +86,30 @@ const processData = (usTopoData, educationData) => {
 // Helper that updates tooltip when a county is moused over
 const handleMouseOver = (event, countyData, colorScale, mergedData) => {
   const tooltip = d3.select('#tooltip');
-  console.log('EVENT: ', event);
 
-  console.log('EVENT: ', d3.select(event.target).attr('data-education'));
+  const tooltipBackgroundColor = colorScale(countyData.bachelorsOrHigher);
 
+  console.log(COLOR_ARR.indexOf(tooltipBackgroundColor));
+
+  // Display tooltip at cursor position, add county data and dynamic color
   tooltip
     .html('')
     .attr('data-education', countyData.bachelorsOrHigher)
     .style('top', `${event.layerY - 20}px`)
     .style('left', `${event.layerX + 40}px`)
-    .style('background-color', `${colorScale(countyData.bachelorsOrHigher)}`)
+    // .style(
+    //   'left',
+    //   event.layerX > window.screen.width / 2
+    //     ? `${event.layerX - 400}px`
+    //     : `${event.layerX + 40}px`,
+    // )
+    .style(
+      'color',
+      COLOR_ARR.indexOf(tooltipBackgroundColor) > 4
+        ? 'white'
+        : `${BACKGROUND_COLOR}`,
+    )
+    .style('background-color', `${tooltipBackgroundColor}`)
     .style('visibility', 'visible');
 
   tooltip.append('h5').text(`${countyData['area_name']}, ${countyData.state}`);
@@ -136,30 +167,15 @@ export default function choroplethBuilder(
     (dataObj) => dataObj.bachelorsOrHigher,
   );
 
-  console.log(edMin, edMax);
-
   // Round these numbers to the nearest 5:
   edMin = Math.floor(edMin / 5) * 5;
   edMax = Math.ceil(edMax / 5) * 5;
-
-  console.log(edMin, edMax);
 
   // See color schemes here https://observablehq.com/@d3/color-schemes
   const colorScale = d3
     .scaleQuantile()
     .domain(mergedData.map((dataObj) => dataObj.bachelorsOrHigher))
-    .range([
-      '#f7fbff',
-      '#e3eef9',
-      '#cfe1f2',
-      '#b5d4e9',
-      '#93c3df',
-      '#6daed5',
-      '#4b97c9',
-      '#2f7ebc',
-      '#1864aa',
-      '#0a4a90',
-    ]);
+    .range(COLOR_ARR);
   // .scaleQuantize()
   // .domain([edMin, edMax])
   // .range([
@@ -216,12 +232,15 @@ export default function choroplethBuilder(
     .enter()
     .append('path')
     .attr('class', 'county')
-    .attr('data-fips', (data) => data.fips)
-    .attr('data-education', (data) => data.bachelorsOrHigher)
+    .attr('data-fips', (countyData) => countyData.fips)
+    .attr('data-education', (countyData) => countyData.bachelorsOrHigher)
+    .attr('data-color-index', (countyData) =>
+      COLOR_ARR.indexOf(colorScale(countyData.bachelorsOrHigher)),
+    )
     .attr('d', path)
-    .style('fill', (dataObj) => colorScale(dataObj.bachelorsOrHigher))
-    .on('mouseover', function (event, dataObj) {
-      handleMouseOver(event, dataObj, colorScale, mergedData);
+    .style('fill', (countyData) => colorScale(countyData.bachelorsOrHigher))
+    .on('mouseover', function (event, countyData) {
+      handleMouseOver(event, countyData, colorScale, mergedData);
     })
     .on('mouseout', handleMouseOut);
 
@@ -237,7 +256,7 @@ export default function choroplethBuilder(
     .append('path')
     .attr('class', 'states')
     .attr('d', path(stateborders))
-    .style('stroke', '#282c34')
+    .style('stroke', 'backgroundColor')
     .style('fill', 'none');
 
   // graphSVG.select('.map').attr('transform', ['scale(0.5)']);

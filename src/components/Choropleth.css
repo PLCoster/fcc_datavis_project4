@@ -1,3 +1,12 @@
 svg.graph {
   width: 100%;
 }
+
+/* === TOOLTIP === */
+#tooltip {
+  padding: 5px;
+  text-align: left;
+  opacity: 0.9;
+  border-radius: 5px;
+  transition: font-color 1s, background-color 1s;
+}
