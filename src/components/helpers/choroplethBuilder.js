@@ -30,10 +30,10 @@ import * as topojson from 'topojson';
 // For plotting in d3 we need to convert this to GeoJSON format
 // This function does this conversion and then merges the spatial data
 // with the corresponding county education data
-const processData = (countyTopoData, educationData) => {
+const processData = (usTopoData, educationData) => {
   const countyGeoData = topojson.feature(
-    countyTopoData,
-    countyTopoData.objects.counties,
+    usTopoData,
+    usTopoData.objects.counties,
   ).features;
 
   // Build object mapping ids to education data for mroe efficient processing:
@@ -51,14 +51,60 @@ const processData = (countyTopoData, educationData) => {
 
 export default function choroplethBuilder(
   educationData,
-  countyTopoData,
+  usTopoData,
   parentSelector,
 ) {
   console.log('ChoroplethBuilder triggered!');
   console.log(educationData);
-  console.log(countyTopoData);
+  console.log(usTopoData);
 
-  const mergedData = processData(countyTopoData, educationData);
+  // Merge County Data with Education Data
+  const mergedData = processData(usTopoData, educationData);
+
+  // Find extent of education data for color scaling:
+  let [edMin, edMax] = d3.extent(
+    mergedData,
+    (dataObj) => dataObj.bachelorsOrHigher,
+  );
+
+  console.log(edMin, edMax);
+
+  // Round these numbers to the nearest 5:
+  edMin = Math.floor(edMin / 5) * 5;
+  edMax = Math.ceil(edMax / 5) * 5;
+
+  console.log(edMin, edMax);
+
+  // See color schemes here https://observablehq.com/@d3/color-schemes
+  const colorScale = d3
+    .scaleQuantile()
+    .domain(mergedData.map((dataObj) => dataObj.bachelorsOrHigher))
+    .range([
+      '#f7fbff',
+      '#e3eef9',
+      '#cfe1f2',
+      '#b5d4e9',
+      '#93c3df',
+      '#6daed5',
+      '#4b97c9',
+      '#2f7ebc',
+      '#1864aa',
+      '#0a4a90',
+    ]);
+  // .scaleQuantize()
+  // .domain([edMin, edMax])
+  // .range([
+  //   '#f7fbff',
+  //   '#e3eef9',
+  //   '#cfe1f2',
+  //   '#b5d4e9',
+  //   '#93c3df',
+  //   '#6daed5',
+  //   '#4b97c9',
+  //   '#2f7ebc',
+  //   '#1864aa',
+  //   '#0a4a90',
+  // ]);
 
   console.log('MERGED DATA: ', mergedData);
 
@@ -77,18 +123,10 @@ export default function choroplethBuilder(
     .attr('height', height);
   // .attr('viewBox', [0, 0, width, height]);
 
-  graphSVG
-    .append('rect')
-    .attr('fill', 'white')
-    .attr('width', width)
-    .attr('height', height);
-
   // Apply projection sized to fit inside SVG area
   const path = d3.geoPath();
 
-  console.log(
-    topojson.feature(countyTopoData, countyTopoData.objects.counties),
-  );
+  console.log(topojson.feature(usTopoData, usTopoData.objects.counties));
 
   console.log(educationData[0]);
 
@@ -105,13 +143,13 @@ export default function choroplethBuilder(
     .attr('data-fips', (data) => data.fips)
     .attr('data-education', (data) => data.bachelorsOrHigher)
     .attr('d', path)
-    .style('fill', 'blue');
+    .style('fill', (dataObj) => colorScale(dataObj.bachelorsOrHigher));
 
   // Add a single path element that draws the borders between states
   // See https://github.com/topojson/topojson-client/blob/master/README.md#mesh
   const stateborders = topojson.mesh(
-    countyTopoData,
-    countyTopoData.objects.states,
+    usTopoData,
+    usTopoData.objects.states,
     (a, b) => a !== b, // Filter function that removes non-internal borders
   );
 
@@ -119,7 +157,7 @@ export default function choroplethBuilder(
     .append('path')
     .attr('class', 'states')
     .attr('d', path(stateborders))
-    .style('stroke', 'white')
+    .style('stroke', '#282c34')
     .style('fill', 'none');
 
   // graphSVG.select('.map').attr('transform', ['scale(0.5)']);
