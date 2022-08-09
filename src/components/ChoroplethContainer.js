@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import Choropleth from './Choropleth';
 
@@ -14,15 +14,20 @@ const dataURLS = [
 
 export default function ChoroplethContainer() {
   const [dataLoaded, setDataLoaded] = useState(false);
+
   const [educationData, setEducationData] = useState(null);
   const [countyTopoData, setCountiesTopoData] = useState(null);
+
+  const [containerWidth, setContainerWidth] = useState(1000);
+  const [containerOpacity, setContainerOpacity] = useState(0);
+
+  const containerRef = useRef(null);
 
   // Load data on mounting:
   useEffect(() => {
     // Get education and counties data from given URLs
     Promise.all(dataURLS.map((url) => fetch(url)))
       .then((responseArr) => {
-        console.log(responseArr);
         if (responseArr[0].status === 200 && responseArr[1].status === 200) {
           return Promise.all(responseArr.map((response) => response.json()));
         } else {
@@ -43,13 +48,31 @@ export default function ChoroplethContainer() {
       });
   }, []);
 
+  // Set up event listener to update plot width on window resize
+  useEffect(() => {
+    const handleWindowResize = () => {
+      setContainerWidth(containerRef.current.clientWidth);
+    };
+    handleWindowResize();
+    window.addEventListener('resize', handleWindowResize);
+    return () => {
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, []);
+
   return (
     <>
-      <main className="container-md">
+      <main
+        className="container-md"
+        ref={containerRef}
+        style={{ opacity: containerOpacity }}
+      >
         {dataLoaded ? (
           <Choropleth
             educationData={educationData}
             countyTopoData={countyTopoData}
+            containerWidth={containerWidth}
+            setContainerOpacity={setContainerOpacity}
           />
         ) : (
           'Loading plot data...'
