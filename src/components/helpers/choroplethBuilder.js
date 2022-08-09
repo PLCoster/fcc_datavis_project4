@@ -29,24 +29,93 @@ import * as topojson from 'topojson';
 // See here (https://github.com/topojson/topojson)
 // For plotting in d3 we need to convert this to GeoJSON format
 // This function does this conversion and then merges the spatial data
-// with the corresponding county education data
+// with the corresponding county education data, sorted from
+// lowest to highest education attainment
 const processData = (usTopoData, educationData) => {
   const countyGeoData = topojson.feature(
     usTopoData,
     usTopoData.objects.counties,
   ).features;
 
-  // Build object mapping ids to education data for mroe efficient processing:
+  // Build object mapping ids to education data for more efficient processing:
   const countyIdToEdData = educationData.reduce((accum, edData) => {
     accum[edData.fips] = edData;
     return accum;
   }, {});
 
-  console.log('Processed: ', countyIdToEdData[5089]);
-
-  return countyGeoData.map((geoData) => {
+  const mergedData = countyGeoData.map((geoData) => {
     return { ...geoData, ...countyIdToEdData[geoData.id] };
   });
+
+  // Sort the merged data from low to high educational attainment and add ranking
+  mergedData.sort((a, b) => a.bachelorsOrHigher - b.bachelorsOrHigher);
+
+  let lastValue = -Infinity;
+  let lastRanking;
+  return mergedData.map((dataObj, index) => {
+    if (lastValue !== dataObj.bachelorsOrHigher) {
+      lastValue = dataObj.bachelorsOrHigher;
+      lastRanking = index + 1;
+    }
+
+    return {
+      ...dataObj,
+      nationalRank: lastRanking,
+      numRanks: mergedData.length,
+    };
+  });
+};
+
+// Helper that updates tooltip when a county is moused over
+const handleMouseOver = (event, countyData, colorScale, mergedData) => {
+  const tooltip = d3.select('#tooltip');
+  console.log('EVENT: ', event);
+
+  console.log('EVENT: ', d3.select(event.target).attr('data-education'));
+
+  tooltip
+    .html('')
+    .attr('data-education', countyData.bachelorsOrHigher)
+    .style('top', `${event.layerY - 20}px`)
+    .style('left', `${event.layerX + 40}px`)
+    .style('background-color', `${colorScale(countyData.bachelorsOrHigher)}`)
+    .style('visibility', 'visible');
+
+  tooltip.append('h5').text(`${countyData['area_name']}, ${countyData.state}`);
+
+  tooltip
+    .append('h6')
+    .text(`Educational Attainment: ${countyData.bachelorsOrHigher}`);
+
+  // Add State and National Ranking:
+  const stateData = mergedData.filter(
+    (dataObj) => dataObj.state === countyData.state,
+  );
+
+  const countiesInState = stateData.length;
+  const stateRank = stateData.reduce((accum, dataObj, index) => {
+    if (dataObj['area_name'] === countyData['area_name']) {
+      return index + 1;
+    } else {
+      return accum;
+    }
+  }, 0);
+
+  tooltip
+    .append('h6')
+    .text(`State Ranking:    ${stateRank} / ${countiesInState}`);
+
+  // !!! This ranking is not 100% accurate where counties have the same attainment
+  tooltip
+    .append('h6')
+    .text(
+      `National Ranking: ${countyData.nationalRank} / ${countyData.numRanks}`,
+    );
+};
+
+// Hide tooltip on county mouseout
+const handleMouseOut = () => {
+  d3.select('#tooltip').style('visibility', 'hidden');
 };
 
 export default function choroplethBuilder(
@@ -106,7 +175,7 @@ export default function choroplethBuilder(
   //   '#0a4a90',
   // ]);
 
-  console.log('MERGED DATA: ', mergedData);
+  console.log('MERGED DATA: ', mergedData[mergedData.length - 1]);
 
   const plotDiv = d3.select(parentSelector);
 
@@ -122,6 +191,13 @@ export default function choroplethBuilder(
     .attr('width', width)
     .attr('height', height);
   // .attr('viewBox', [0, 0, width, height]);
+
+  // Add tooltip element
+  plotDiv
+    .append('div')
+    .style('position', 'absolute')
+    .style('visibility', 'hidden')
+    .attr('id', 'tooltip');
 
   // Apply projection sized to fit inside SVG area
   const path = d3.geoPath();
@@ -143,7 +219,11 @@ export default function choroplethBuilder(
     .attr('data-fips', (data) => data.fips)
     .attr('data-education', (data) => data.bachelorsOrHigher)
     .attr('d', path)
-    .style('fill', (dataObj) => colorScale(dataObj.bachelorsOrHigher));
+    .style('fill', (dataObj) => colorScale(dataObj.bachelorsOrHigher))
+    .on('mouseover', function (event, dataObj) {
+      handleMouseOver(event, dataObj, colorScale, mergedData);
+    })
+    .on('mouseout', handleMouseOut);
 
   // Add a single path element that draws the borders between states
   // See https://github.com/topojson/topojson-client/blob/master/README.md#mesh
@@ -161,4 +241,11 @@ export default function choroplethBuilder(
     .style('fill', 'none');
 
   // graphSVG.select('.map').attr('transform', ['scale(0.5)']);
+
+  // Add tooltip element
+  plotDiv
+    .append('div')
+    .style('position', 'absolute')
+    .style('visibility', 'hidden')
+    .attr('id', 'tooltip');
 }
