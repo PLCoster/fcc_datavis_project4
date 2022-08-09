@@ -95,13 +95,12 @@ const handleMouseOver = (event, countyData, colorScale, mergedData) => {
     .html('')
     .attr('data-education', countyData.bachelorsOrHigher)
     .style('top', `${event.layerY - 20}px`)
-    .style('left', `${event.layerX + 40}px`)
-    // .style(
-    //   'left',
-    //   event.layerX > window.screen.width / 2
-    //     ? `${event.layerX - 400}px`
-    //     : `${event.layerX + 40}px`,
-    // )
+    .style(
+      'left',
+      event.layerX > window.screen.width / 2
+        ? `${event.layerX - 200}px`
+        : `${event.layerX + 40}px`,
+    )
     .style(
       'color',
       COLOR_ARR.indexOf(tooltipBackgroundColor) > 4
@@ -109,13 +108,14 @@ const handleMouseOver = (event, countyData, colorScale, mergedData) => {
         : `${BACKGROUND_COLOR}`,
     )
     .style('background-color', `${tooltipBackgroundColor}`)
-    .style('visibility', 'visible');
+    .style('visibility', 'visible')
+    .style('display', 'block');
 
   tooltip.append('h5').text(`${countyData['area_name']}, ${countyData.state}`);
 
   tooltip
     .append('h6')
-    .text(`Educational Attainment: ${countyData.bachelorsOrHigher}`);
+    .text(`Educational Attainment: ${countyData.bachelorsOrHigher}%`);
 
   // Add State and National Ranking:
   const stateData = mergedData.filter(
@@ -148,6 +148,7 @@ const handleMouseOut = () => {
   d3.select('#tooltip').style('visibility', 'hidden');
 };
 
+// Main function to build choropleth plot
 export default function choroplethBuilder(
   educationData,
   usTopoData,
@@ -172,9 +173,9 @@ export default function choroplethBuilder(
 
   plotDiv.html('');
 
-  const width = 1000;
+  const width = 1200;
   const height = 0.6 * width;
-  const padding = { left: 80, bottom: 140, top: 0, right: 40 };
+  const padding = { left: 40, bottom: 20, top: 40, right: 20 };
 
   const graphSVG = plotDiv
     .append('svg')
@@ -183,12 +184,6 @@ export default function choroplethBuilder(
     .attr('height', height);
   // .attr('viewBox', [0, 0, width, height]);
 
-  graphSVG
-    .append('rect')
-    .attr('width', width)
-    .attr('height', height)
-    .style('fill', 'gray');
-
   // Add tooltip element
   plotDiv
     .append('div')
@@ -196,11 +191,10 @@ export default function choroplethBuilder(
     .style('visibility', 'hidden')
     .attr('id', 'tooltip');
 
-  // Apply projection sized to fit inside SVG area
-  const path = d3.geoPath();
-
   // Draw the counties map on a g element:
   // g element standard size with map is 999 x 583px
+  const path = d3.geoPath();
+
   graphSVG
     .append('g')
     .attr('class', 'map')
@@ -236,12 +230,70 @@ export default function choroplethBuilder(
     .style('stroke', BACKGROUND_COLOR)
     .style('fill', 'none');
 
-  // graphSVG.select('.map').attr('transform', ['scale(0.5)']);
+  // Adjust position and scale of Choropleth based on available width/height of parent
+  const availableWidth = width - padding.left;
+  const widthScale = availableWidth / 999;
+
+  const availableHeight = height - padding.top - padding.bottom;
+  const heightScale = availableHeight / 583;
+
+  const scaleFactor = widthScale < heightScale ? widthScale : heightScale;
+
+  graphSVG
+    .select('.map')
+    .attr('transform', [
+      `translate(${padding.left}, ${padding.top})`,
+      `scale(${scaleFactor})`,
+    ]);
 
   // Add tooltip element
   plotDiv
     .append('div')
     .style('position', 'absolute')
+    .style('display', 'none')
     .style('visibility', 'hidden')
     .attr('id', 'tooltip');
+
+  // Create color legend for z-axis
+  const legendWidth = 400;
+  const legendHeight = 20;
+  const legendTop = padding.top / 2;
+
+  const zLegendScale = d3
+    .scaleLinear()
+    .domain([edMin, edMax])
+    .range([width - padding.right - legendWidth, width - padding.right])
+    .nice();
+
+  const zLegendAxis = d3
+    .axisBottom(zLegendScale)
+    .tickValues(
+      Array(11)
+        .fill()
+        .map((el, index) => edMin + (index / 10) * (edMax - edMin)),
+    )
+    .tickFormat((value) => `${value}%`);
+
+  const zLegend = graphSVG.append('g').attr('id', 'legend');
+
+  zLegend
+    .selectAll('rect')
+    .data(
+      Array(10)
+        .fill()
+        .map((el, index) => edMin + (index / 10) * (edMax - edMin)),
+    )
+    .enter()
+    .append('rect')
+    .attr('x', (d) => zLegendScale(d))
+    .attr('y', legendTop)
+    .attr('width', (zLegendScale(edMax) - zLegendScale(edMin)) / 10)
+    .attr('height', legendHeight)
+    .attr('fill', (d) => colorScale(d));
+
+  zLegend
+    .append('g')
+    .style('font-size', '14px')
+    .attr('transform', `translate(0, ${legendTop + legendHeight})`)
+    .call(zLegendAxis);
 }
