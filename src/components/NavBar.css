@@ -1,4 +1,8 @@
 /* NAVBAR COMPONENT STYLES */
+.navbar {
+  background-image: linear-gradient(to right, #e3eef9, #2f7ebc);
+}
+
 .navbar .navbar-brand {
   margin-left: 40px;
 }

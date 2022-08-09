@@ -32,6 +32,13 @@ export default function Choropleth({
         (2010-2014)
       </h3>
       <div id={choroContainerId} />
+      <hr />
+      <p>
+        Data sourced from{' '}
+        <a href="https://www.ers.usda.gov/data-products/county-level-data-sets/download-data.aspx">
+          USDA Economic Research Service
+        </a>
+      </p>
     </>
   );
 }
