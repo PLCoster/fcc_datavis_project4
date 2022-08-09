@@ -29,8 +29,8 @@ import * as topojson from 'topojson';
 const BACKGROUND_COLOR = '#282c34';
 
 // Array of colors for the chart color scale:
+// See color schemes here https://observablehq.com/@d3/color-schemes
 const COLOR_ARR = [
-  '#f7fbff',
   '#e3eef9',
   '#cfe1f2',
   '#b5d4e9',
@@ -40,6 +40,7 @@ const COLOR_ARR = [
   '#2f7ebc',
   '#1864aa',
   '#0a4a90',
+  '#08306b',
 ];
 
 // The county data to plot the choropleth with is in topojson format
@@ -65,7 +66,7 @@ const processData = (usTopoData, educationData) => {
   });
 
   // Sort the merged data from low to high educational attainment and add ranking
-  mergedData.sort((a, b) => a.bachelorsOrHigher - b.bachelorsOrHigher);
+  mergedData.sort((a, b) => b.bachelorsOrHigher - a.bachelorsOrHigher);
 
   let lastValue = -Infinity;
   let lastRanking;
@@ -88,8 +89,6 @@ const handleMouseOver = (event, countyData, colorScale, mergedData) => {
   const tooltip = d3.select('#tooltip');
 
   const tooltipBackgroundColor = colorScale(countyData.bachelorsOrHigher);
-
-  console.log(COLOR_ARR.indexOf(tooltipBackgroundColor));
 
   // Display tooltip at cursor position, add county data and dynamic color
   tooltip
@@ -154,10 +153,6 @@ export default function choroplethBuilder(
   usTopoData,
   parentSelector,
 ) {
-  console.log('ChoroplethBuilder triggered!');
-  console.log(educationData);
-  console.log(usTopoData);
-
   // Merge County Data with Education Data
   const mergedData = processData(usTopoData, educationData);
 
@@ -171,33 +166,13 @@ export default function choroplethBuilder(
   edMin = Math.floor(edMin / 5) * 5;
   edMax = Math.ceil(edMax / 5) * 5;
 
-  // See color schemes here https://observablehq.com/@d3/color-schemes
-  const colorScale = d3
-    .scaleQuantile()
-    .domain(mergedData.map((dataObj) => dataObj.bachelorsOrHigher))
-    .range(COLOR_ARR);
-  // .scaleQuantize()
-  // .domain([edMin, edMax])
-  // .range([
-  //   '#f7fbff',
-  //   '#e3eef9',
-  //   '#cfe1f2',
-  //   '#b5d4e9',
-  //   '#93c3df',
-  //   '#6daed5',
-  //   '#4b97c9',
-  //   '#2f7ebc',
-  //   '#1864aa',
-  //   '#0a4a90',
-  // ]);
-
-  console.log('MERGED DATA: ', mergedData[mergedData.length - 1]);
+  const colorScale = d3.scaleQuantize().domain([edMin, edMax]).range(COLOR_ARR);
 
   const plotDiv = d3.select(parentSelector);
 
   plotDiv.html('');
 
-  const width = 2000;
+  const width = 1000;
   const height = 0.6 * width;
   const padding = { left: 80, bottom: 140, top: 0, right: 40 };
 
@@ -208,6 +183,12 @@ export default function choroplethBuilder(
     .attr('height', height);
   // .attr('viewBox', [0, 0, width, height]);
 
+  graphSVG
+    .append('rect')
+    .attr('width', width)
+    .attr('height', height)
+    .style('fill', 'gray');
+
   // Add tooltip element
   plotDiv
     .append('div')
@@ -217,10 +198,6 @@ export default function choroplethBuilder(
 
   // Apply projection sized to fit inside SVG area
   const path = d3.geoPath();
-
-  console.log(topojson.feature(usTopoData, usTopoData.objects.counties));
-
-  console.log(educationData[0]);
 
   // Draw the counties map on a g element:
   // g element standard size with map is 999 x 583px
@@ -256,7 +233,7 @@ export default function choroplethBuilder(
     .append('path')
     .attr('class', 'states')
     .attr('d', path(stateborders))
-    .style('stroke', 'backgroundColor')
+    .style('stroke', BACKGROUND_COLOR)
     .style('fill', 'none');
 
   // graphSVG.select('.map').attr('transform', ['scale(0.5)']);
