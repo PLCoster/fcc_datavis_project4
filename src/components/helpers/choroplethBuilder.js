@@ -92,7 +92,7 @@ export default function choroplethBuilder(
 
   console.log(educationData[0]);
 
-  // Draw the map on a g element:
+  // Draw the counties map on a g element:
   // g element standard size with map is 999 x 583px
   graphSVG
     .append('g')
@@ -104,7 +104,23 @@ export default function choroplethBuilder(
     .attr('class', 'county')
     .attr('data-fips', (data) => data.fips)
     .attr('data-education', (data) => data.bachelorsOrHigher)
-    .attr('d', path);
+    .attr('d', path)
+    .style('fill', 'blue');
+
+  // Add a single path element that draws the borders between states
+  // See https://github.com/topojson/topojson-client/blob/master/README.md#mesh
+  const stateborders = topojson.mesh(
+    countyTopoData,
+    countyTopoData.objects.states,
+    (a, b) => a !== b, // Filter function that removes non-internal borders
+  );
+
+  d3.select('.map')
+    .append('path')
+    .attr('class', 'states')
+    .attr('d', path(stateborders))
+    .style('stroke', 'white')
+    .style('fill', 'none');
 
   // graphSVG.select('.map').attr('transform', ['scale(0.5)']);
 }
