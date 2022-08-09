@@ -2,6 +2,25 @@ svg.graph {
   width: 100%;
 }
 
+/* === MAIN CONTAINER / TITLES === */
+
+main {
+  margin: 2vh 0;
+  min-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity 1s;
+}
+
+#title {
+  font-size: 2rem;
+}
+
+#description {
+  font-size: 1.2rem;
+}
+
 /* === TOOLTIP === */
 #tooltip {
   padding: 5px;
