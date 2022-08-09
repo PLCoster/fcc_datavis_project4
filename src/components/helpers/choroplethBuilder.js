@@ -70,6 +70,7 @@ const processData = (usTopoData, educationData) => {
 
   let lastValue = -Infinity;
   let lastRanking;
+
   return mergedData.map((dataObj, index) => {
     if (lastValue !== dataObj.bachelorsOrHigher) {
       lastValue = dataObj.bachelorsOrHigher;
@@ -87,8 +88,8 @@ const processData = (usTopoData, educationData) => {
 // Helper that updates tooltip when a county is moused over
 const handleMouseOver = (event, countyData, colorScale, mergedData) => {
   const tooltip = d3.select('#tooltip');
-
   const tooltipBackgroundColor = colorScale(countyData.bachelorsOrHigher);
+  const screenWidth = d3.select('body').node().getBoundingClientRect().width;
 
   // Display tooltip at cursor position, add county data and dynamic color
   tooltip
@@ -97,7 +98,7 @@ const handleMouseOver = (event, countyData, colorScale, mergedData) => {
     .style('top', `${event.layerY - 20}px`)
     .style(
       'left',
-      event.layerX > window.screen.width / 2
+      event.layerX > screenWidth / 2
         ? `${event.layerX - 200}px`
         : `${event.layerX + 40}px`,
     )
@@ -117,7 +118,7 @@ const handleMouseOver = (event, countyData, colorScale, mergedData) => {
     .append('h6')
     .text(`Educational Attainment: ${countyData.bachelorsOrHigher}%`);
 
-  // Add State and National Ranking:
+  // Add State and National Ranking info to tooltip:
   const stateData = mergedData.filter(
     (dataObj) => dataObj.state === countyData.state,
   );
@@ -135,7 +136,6 @@ const handleMouseOver = (event, countyData, colorScale, mergedData) => {
     .append('h6')
     .text(`State Ranking:    ${stateRank} / ${countiesInState}`);
 
-  // !!! This ranking is not 100% accurate where counties have the same attainment
   tooltip
     .append('h6')
     .text(
@@ -153,6 +153,7 @@ export default function choroplethBuilder(
   educationData,
   usTopoData,
   parentSelector,
+  containerWidth,
 ) {
   // Merge County Data with Education Data
   const mergedData = processData(usTopoData, educationData);
@@ -173,9 +174,9 @@ export default function choroplethBuilder(
 
   plotDiv.html('');
 
-  const width = 1200;
-  const height = 0.6 * width;
-  const padding = { left: 40, bottom: 20, top: 40, right: 20 };
+  const width = Math.min(containerWidth, 1320);
+  const height = 0.65 * width;
+  const padding = { left: 40, bottom: 20, top: 40, right: 80 };
 
   const graphSVG = plotDiv
     .append('svg')
@@ -232,7 +233,7 @@ export default function choroplethBuilder(
 
   // Adjust position and scale of Choropleth based on available width/height of parent
   const availableWidth = width - padding.left;
-  const widthScale = availableWidth / 999;
+  const widthScale = availableWidth / 980;
 
   const availableHeight = height - padding.top - padding.bottom;
   const heightScale = availableHeight / 583;
