@@ -1,7 +1,19 @@
 {
-  "name": "project4",
-  "version": "0.1.0",
+  "name": "fcc_datavis_project4",
+  "version": "1.0.0",
+  "description": "FreeCodeCamp Data Visualisation Project 4",
+  "main": "index.js",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PLCoster/fcc_datavis_project4.git"
+  },
+  "author": "PLCoster",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PLCoster/fcc_datavis_project4/issues"
+  },
+  "homepage": "https://plcoster.github.io/fcc_datavis_project4/",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.1.2",
     "@fortawesome/free-brands-svg-icons": "^6.1.2",
