@@ -94,4 +94,5 @@ A production build can be created in the `dist/` folder by running:
 The build can be easily served by installing `serve`:
 
 `npm install -g serve`
+
 `serve -s build`
