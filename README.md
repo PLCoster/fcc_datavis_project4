@@ -1,70 +1,97 @@
-# Getting Started with Create React App
+# Free Code Camp: Data Visualisation Project 4 - Choropleth Map
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Interactive U.S. Educational Attainment Choropleth
 
-## Available Scripts
+The aim of this project was to build a small web app and data visualisation with functionality similar to: https://codepen.io/freeCodeCamp/full/EZKqza
 
-In the project directory, you can run:
+The project was built using the following technologies:
 
-### `npm start`
+- **HTML**
+- **JavaScript** with **[Node.js](https://nodejs.org/en/) / [NPM](https://www.npmjs.com/)** for package management
+- **[React](https://reactjs.org/)** for application view with React Hooks to handle the application state
+- **[D3](https://d3js.org/)** to generate the SVG Choropleth from the data
+- **[Bootstrap](https://getbootstrap.com/)** for styling with some custom **CSS**
+- **[FontAwesome](https://fontawesome.com/)** for icons
+- **[Create-React-App](https://create-react-app.dev/)** for initial app template with bundling
+- **[TopoJSON](https://github.com/topojson/topojson)** to convert the supplied U.S. State/County TopoJSON data into GeoJSON format, for rendering with `d3.geoPath`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+U.S. Educational Data sourced from [USDA Economic Research Service](https://www.ers.usda.gov/)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Up-to-date data can be found [here](https://www.ers.usda.gov/data-products/county-level-data-sets/download-data.aspx)
 
-### `npm test`
+### Project Requirements
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **User Story #1:** My choropleth should have a title with a corresponding `id="title"`.
 
-### `npm run build`
+- **User Story #2:** My choropleth should have a description element with a corresponding `id="description"`.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **User Story #3:** My choropleth should have counties with a corresponding `class="county"` that represent the data.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- **User Story #4:** There should be at least 4 different fill colors used for the counties.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- **User Story #5:** My counties should each have `data-fips` and `data-education` properties containing their corresponding `fips` and `education` values.
 
-### `npm run eject`
+- **User Story #6:** My choropleth should have a county for each provided data point.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- **User Story #7:** The counties should have `data-fips` and `data-education` values that match the sample data.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **User Story #8:** My choropleth should have a legend with a corresponding `id="legend"`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- **User Story #9:** There should be at least 4 different fill colors used for the legend.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **User Story #10:** I can mouse over an area and see a tooltip with a corresponding `id="tooltip"` which displays more information about the area.
 
-## Learn More
+- **User Story #11:** My tooltip should have a `data-education` property that corresponds to the `data-education` of the active area.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Project Writeup:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+For the fourth Free Code Camp: Data Visualisation Project, I decided to incorporate the Choropleth Map inside a small React app, bundled using Create-React-App. The application state is controlled using React Hooks (`useState`, `useEffect`).
 
-### Code Splitting
+After the relevant data for the chart has been fetched (using `Promise.all` to wait for all fetch requests to resolve before proceeding), the Choropleth is built using D3.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Going beyond the required User Stories outlined above, the plot generated by the app is responsive to changes in the browser window size. A `window.onresize` event listener is added using a `useEffect` hook inside the `ChoroplethContainer` component. When the window size changes, the graph container width is passed as props to the `Choropleth` component, which causes the D3 SVG to be re-rendered according to the available size.
 
-### Analyzing the Bundle Size
+In addition, the displayed tool-tip when the cursor is placed on a data bar in the graph adjusts its positioning to ensure it is always contained inside the graph area, and not hidden off screen.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Project Files:
 
-### Making a Progressive Web App
+- `/public` - this folder contains all public content for the app, including favicon images, the web manifest, and the basic index.html template onto which the React component tree is rendered.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- `/src/index.js` - this is the entry point to the React application, it renders the react component tree on the DOM, as well as importing Bootstrap styles for the application.
 
-### Advanced Configuration
+- `/src/components/helpers/choroplethBuilder.js` - contains a set of functions that build the Choropleth and append it to a desired DOM element. Rendering the U.S. State and County map is done using `<path>` elements and D3's `geoPath()` functionality. Counties are color coded according to educational attainment using D3's `scaleQuantize()` API.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+  An `on:hover` tooltip is also added to the graph - it is a small div element which has its position, visibility and contents adjusted dynamically based on the current mouse position, using the `mouseover` event on Choropleth county paths.
 
-### Deployment
+- `/docs` - contains a copy of the built app files for deployment via github-pages
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Components:
 
-### `npm run build` fails to minify
+- `App.js` - is the top level component of the application, a simple container component that renders the `NavBar` and `ChoroplethContainer` components.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- `NavBar.js` is a presentational navbar component, providing links to other projects / sites.
+
+- `ChoroplethContainer.js` - after mounting, this component uses two `useEffect` hooks. One of these hooks fetches both the U.S. topological data (needed to render the image of the U.S. and its states and counties) and the U.S. Educational Attainment Data (used to color-scale the Choropleth). The other hook sets up the `window.onresize` event listener, listening for window resize events and then passing the current width of the `<main>` element to the `Choropleth` component so it knows the size of plot to create.
+
+  - `Choropleth.js` - this component uses a `useEffect` hook to render the Choropleth SVG after the component mounts, and also whenever the `containerWidth` prop passed to it by `ChoroplethContainer` changes. The Choropleth is built and mounted to the `#choropleth-container` element by the functions in `helpers/choroplethBuilder.js`. After building the graph, the opacity of the `main` element is set to 1 using the `setContainerOpacity` dispatch function, making the graph visible.
+
+### Usage
+
+Requires Node.js / NPM in order to install required packages. After downloading the repo, install required dependencies with:
+
+`npm install`
+
+The CRA development server can then be started with:
+
+`npm start`
+
+The development can then be viewed at `http://localhost:3000/` in the browser.
+
+A production build can be created in the `dist/` folder by running:
+
+`npm run build`
+
+The build can be easily served by installing `serve`:
+
+`npm install -g serve`
+`serve -s build`
