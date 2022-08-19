@@ -95,12 +95,12 @@ const handleMouseOver = (event, countyData, colorScale, mergedData) => {
   tooltip
     .html('')
     .attr('data-education', countyData.bachelorsOrHigher)
-    .style('top', `${event.layerY - 20}px`)
+    .style('top', `${event.pageY - 20}px`)
     .style(
       'left',
-      event.layerX > screenWidth / 2
-        ? `${event.layerX - 200}px`
-        : `${event.layerX + 40}px`,
+      event.clientX > screenWidth / 2
+        ? `${event.pageX - 200}px`
+        : `${event.pageX + 40}px`,
     )
     .style(
       'color',
@@ -174,8 +174,8 @@ export default function choroplethBuilder(
 
   plotDiv.html('');
 
-  const width = Math.min(containerWidth, 1320);
-  const height = 0.65 * width;
+  const width = Math.max(containerWidth, 720);
+  const height = Math.min(0.65 * width, 700);
   const padding = { left: 40, bottom: 20, top: 40, right: 80 };
 
   const graphSVG = plotDiv

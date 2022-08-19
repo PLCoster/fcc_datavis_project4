@@ -61,7 +61,7 @@ export default function ChoroplethContainer() {
   }, []);
 
   return (
-    <>
+    <div className="container-fluid">
       <main
         className="container-md"
         ref={containerRef}
@@ -78,6 +78,6 @@ export default function ChoroplethContainer() {
           'Loading plot data...'
         )}
       </main>
-    </>
+    </div>
   );
 }

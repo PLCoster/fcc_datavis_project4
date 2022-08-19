@@ -4,12 +4,12 @@ svg.graph {
 
 /* === MAIN CONTAINER / TITLES === */
 
-main {
-  margin: 2vh 0;
-  min-width: 720px;
+main.container-md {
+  margin: 2vh auto;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  text-align: center;
   transition: opacity 1s;
 }
 
@@ -19,6 +19,11 @@ main {
 
 #description {
   font-size: 1.2rem;
+}
+
+#choropleth-container {
+  width: 100%;
+  overflow-x: auto;
 }
 
 /* === TOOLTIP === */
